@@ -81,3 +81,8 @@ Ensure the task names used with `--task` match the keys in `athena_eval/config.y
 
 ## Access to Full Benchmark
 For access to the full benchmark dataset, reach out to info@athenasecuritygrp.com.
+
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=xashru/sphinx,Athena-Software-Group/athenabench&type=date&legend=top-left)](https://www.star-history.com/#xashru/sphinx&Athena-Software-Group/athenabench&type=date&legend=top-left)
