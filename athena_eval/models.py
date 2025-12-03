@@ -9,7 +9,7 @@ from typing import Optional
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
-from athena_common.utils import load_api_key
+from .utils import load_api_key
 from dotenv import load_dotenv
 
 try:  # Optional dependency used only for OpenAI models

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import hashlib
 import re
 import sys
 from pathlib import Path
@@ -13,8 +14,7 @@ from typing import Dict, Iterable, List, Tuple
 from cvss import CVSS3
 from tqdm import tqdm
 
-from athena_common.utils import load_jsonl, load_yaml
-import hashlib
+from .utils import load_jsonl, load_yaml
 from .answer_extractors import extract_answer
 
 # ---------------------------------------------------------------------------
@@ -297,8 +297,11 @@ def main(argv: Iterable[str] | None = None) -> None:
     cfg = load_yaml(args.config)
     pred_dir = Path("runs-mini") if args.mini else Path(cfg.get("predictions_dir", "data/predictions"))
 
-    alias_dict = load_alias_dict("data/processed/taa/aliases.csv")
-    related_dict = load_related_dict("data/processed/taa/related_groups.csv")
+    base_dir = Path(__file__).resolve().parent
+    alias_csv = base_dir / "taa" / "aliases.csv"
+    related_csv = base_dir / "taa" / "related_groups.csv"
+    alias_dict = load_alias_dict(str(alias_csv))
+    related_dict = load_related_dict(str(related_csv))
 
     model_names = [args.model] if args.model else list(cfg.get("models", {}).keys())
     tasks_cfg = cfg.get("tasks", {})

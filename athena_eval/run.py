@@ -9,7 +9,7 @@ from typing import Dict, Iterable, List
 
 from tqdm import tqdm
 
-from athena_common.utils import load_jsonl, load_yaml
+from .utils import load_jsonl, load_yaml
 
 from .answer_extractors import extract_answer
 from .models import load_model
@@ -174,8 +174,11 @@ def main(argv: Iterable[str] | None = None) -> None:
 
     alias_dict = related_dict = None
     if args.evaluate:
-        alias_dict = load_alias_dict("data/processed/taa/aliases.csv")
-        related_dict = load_related_dict("data/processed/taa/related_groups.csv")
+        base_dir = Path(__file__).resolve().parent
+        alias_csv = base_dir / "taa" / "aliases.csv"
+        related_csv = base_dir / "taa" / "related_groups.csv"
+        alias_dict = load_alias_dict(str(alias_csv))
+        related_dict = load_related_dict(str(related_csv))
 
     model_names = [args.model] if args.model else list(cfg.get("models", {}).keys())
     tasks_cfg = cfg.get("tasks", {})
