@@ -50,12 +50,6 @@ python -m athena_eval.evaluate --mini --model gpt-4o --task RCM
 - **Mini subsets (`benchmark-mini/`)**: aligned smaller splits for each task (e.g., `athena-cti-ckt-3k.jsonl`), used by `--mini`.
 - Task names used with `--task` must match the keys in `athena_eval/config.yaml` (e.g., `CKT`, `ATE`, `RCM`, `RMS`, `TAA`, `VSP`).
 
-### (Optional) Build datasets
-Data pipelines live in `athena_data` and `athena_scrape`:
-- RCM/VSP: download NVD records then build `athena-cti-rcm.jsonl` and `athena-cti-vsp.jsonl` with `python -m athena_data.cve.create_cve_data --config athena_data/config.yaml`.
-- TAA: extract and anonymize reports (`python -m athena_data.taa.create_taa_data`) then assemble `athena-cti-taa.jsonl` with `python -m athena_data.taa.make_benchmark`.
-- CKT (multiple-choice): collect URLs and build the corpus with `athena_scrape`, draft the plan via `athena_scrape plan-mcq`, then generate questions with `python -m athena_data.mcq.create_mcq_data --config athena_data/config.yaml`. Apply patches or subsets using the MCQ utilities in `athena_data.mcq` to produce `benchmark/athena-cti-ckt-3k.jsonl` (and `benchmark-mini/athena-cti-ckt-3k.jsonl` when subsampled).
-- RMS/ATE: create both from MITRE ATT&CK with `python -m athena_data.mitre_attck.create_mitre_attck_data --config athena_data/config.yaml`.
 
 ## Benchmark Results
 
@@ -93,3 +87,6 @@ Data pipelines live in `athena_data` and `athena_scrape`:
 | Llama 3.3-70b-Instruct | 81.7 | 44.0 | 59.0 | 11.5 | 69.7 | 22.0 | 48.0 |
 | Llama-Primus-Merged | 79.7 | 32.0 | 51.0 | 6.4 | 71.8 | 18.0 | 43.1 |
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Athena-Software-Group/athenabench&type=date&legend=top-left)](https://www.star-history.com/#Athena-Software-Group/athenabench&type=date&legend=top-left)
