@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import hashlib
+import os
 import re
 import sys
 from pathlib import Path
@@ -356,12 +357,25 @@ def main(argv: Iterable[str] | None = None) -> None:
             out_path = model_dir / f"{t}-scored.jsonl"
             model_dir.mkdir(parents=True, exist_ok=True)
             task_up = t.upper()
+            scored_path = model_dir / f"{t}-scored.jsonl"
 
             # If --mini, try to evaluate predictions from runs-mini first
             if args.mini:
                 if preds_path.exists():
                     metrics = evaluate_file(
                         t, preds_path, out_path, alias_dict, related_dict, vsp_denominator
+                    )
+                    emit_metrics(t, metrics)
+                    continue
+                if scored_path.exists():
+                    print(f"[eval] {preds_path} missing; using existing scored file {scored_path} for metrics only.")
+                    metrics = evaluate_records(
+                        t,
+                        load_jsonl(str(scored_path)),
+                        Path(os.devnull),
+                        alias_dict,
+                        related_dict,
+                        vsp_denominator,
                     )
                     emit_metrics(t, metrics)
                     continue
@@ -411,10 +425,27 @@ def main(argv: Iterable[str] | None = None) -> None:
                 emit_metrics(t, metrics)
                 continue
 
-            metrics = evaluate_file(
-                t, preds_path, out_path, alias_dict, related_dict, vsp_denominator
-            )
-            emit_metrics(t, metrics)
+            if preds_path.exists():
+                metrics = evaluate_file(
+                    t, preds_path, out_path, alias_dict, related_dict, vsp_denominator
+                )
+                emit_metrics(t, metrics)
+                continue
+
+            if scored_path.exists():
+                print(f"[eval] {preds_path} missing; using existing scored file {scored_path} for metrics only.")
+                metrics = evaluate_records(
+                    t,
+                    load_jsonl(str(scored_path)),
+                    Path(os.devnull),
+                    alias_dict,
+                    related_dict,
+                    vsp_denominator,
+                )
+                emit_metrics(t, metrics)
+                continue
+
+            print(f"[eval] No predictions found for {t}. Expected {preds_path} or {scored_path}.")
 
         if avg_entries:
             avg_value = sum(value for _, value in avg_entries) / len(avg_entries)
