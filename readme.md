@@ -33,7 +33,7 @@ Re-evaluate existing predictions:
 ```bash
 python -m athena_eval.evaluate --model gpt-4o --task RCM
 ```
-- `CKT` uses `benchmark/athena-cti-ckt-3k.jsonl` (3k-set available; no full CKT file in this repo).
+- `CKT` uses `benchmark/athena-cti-ckt-3k.jsonl` (3k-set available; no full CKT file in this repo). If an unscored file is missing, the evaluator will fall back to the existing `*-scored.jsonl` for metrics without rewriting.
 
 ### Mini subsets
 Use the lightweight mini splits (writes to `runs-mini/<model>/<task>.jsonl`):
@@ -43,12 +43,13 @@ python -m athena_eval.run --mini --model gpt-4o --task RCM
 ```bash
 python -m athena_eval.evaluate --mini --model gpt-4o --task RCM
 ```
-- The `--mini` flag swaps each dataset path for its counterpart in `benchmark-mini/`. Evaluator will read from `runs-mini/` if present; otherwise it maps full-run outputs to the mini records by `prompt_hash`.
+- The `--mini` flag swaps each dataset path for its counterpart in `benchmark-mini/`. Evaluator will read from `runs-mini/` if present; otherwise it maps full-run outputs to the mini records by `prompt_hash`. As with full runs, if only scored artifacts exist, metrics are computed from `*-scored.jsonl` without rewriting.
 
 ### Dataset inventory
 - **Full benchmark (`benchmark/`)**: `athena-cti-ckt-3k.jsonl`, `athena-cti-ate.jsonl`, `athena-cti-rcm.jsonl`, `athena-cti-rms.jsonl`, `athena-cti-taa.jsonl`, `athena-cti-vsp.jsonl`.
 - **Mini subsets (`benchmark-mini/`)**: aligned smaller splits for each task (e.g., `athena-cti-ckt-3k.jsonl`), used by `--mini`.
 - Task names used with `--task` must match the keys in `athena_eval/config.yaml` (e.g., `CKT`, `ATE`, `RCM`, `RMS`, `TAA`, `VSP`).
+- Existing outputs in `runs/` and `runs-mini/` are scored-only for most tasks; regenerate if you need fresh unscored prediction files.
 
 
 ## Benchmark Results
