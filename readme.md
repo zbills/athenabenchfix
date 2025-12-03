@@ -1,13 +1,16 @@
 # AthenaBench
 
-AthenaBench provides cybersecurity benchmarking tasks for evaluating language models on a shared set of CTI tasks. This guide focuses on running the bundled **mini** benchmark, which contains lightweight subsets of each task for quick iteration.
+AthenaBench provides cybersecurity benchmarking tasks for evaluating language models on a shared set of CTI tasks. Full benchmark datasets live in `benchmark/`, with matching **mini** subsets under `benchmark-mini/` for quick iteration.
 
-## Run the Mini Benchmark
+## Setup
 
 1. **Install dependencies**
    ```bash
    pip install -r requirements.txt
+   git lfs install
+   git lfs pull
    ```
+   Git LFS is required to fetch the large benchmark artifacts.
 
 2. **Configure models and credentials** in `athena_eval/config.yaml`. Each entry specifies a provider (`openai`, `gemini`, `huggingface`, or `dummy`) and model name. API keys can be placed in the environment or a `.env` file that is auto-loaded. Example:
    ```
@@ -16,31 +19,43 @@ AthenaBench provides cybersecurity benchmarking tasks for evaluating language mo
    HF_TOKEN=""
    ```
 
-3. **Generate predictions on the mini subset**
-   ```bash
-   python -m athena_eval.run --mini --model gpt-4o --task RCM
-   ```
-   - Omit `--model` or `--task` to iterate over all configured entries.
-   - The `--mini` flag swaps each dataset path for its counterpart in `benchmark-mini/` and writes outputs to `runs-mini/<model>/<task>.jsonl`.
-   - Evaluation runs by default; add `--no-evaluate` to skip scoring during generation.
+## Run the Benchmark
 
-4. **Evaluate previously generated predictions (optional)**
-   ```bash
-   python -m athena_eval.evaluate --mini --model gpt-4o --task RCM
-   ```
-   This reads predictions from `runs-mini/` and compares them against the mini datasets in `benchmark-mini/`, emitting task-level metrics and refreshing any `*-scored.jsonl` artifacts.
+### Full datasets
+Generate predictions on the full benchmark (writes to `runs/<model>/<task>.jsonl`):
+```bash
+python -m athena_eval.run --model gpt-4o --task RCM
+```
+- Omit `--model` or `--task` to iterate over all configured entries.
+- Evaluation runs by default; add `--no-evaluate` to skip scoring during generation.
 
-### Mini Tasks Available
+Re-evaluate existing predictions:
+```bash
+python -m athena_eval.evaluate --model gpt-4o --task RCM
+```
+- `CKT` uses `benchmark/athena-cti-ckt-3k.jsonl` (3k-set available; no full CKT file in this repo).
 
-Mini splits are provided for every benchmark task and live in `benchmark-mini/`:
-- `athena-cti-mcq-3k.jsonl`
-- `athena-cti-ate.jsonl`
-- `athena-cti-rcm.jsonl`
-- `athena-cti-rms.jsonl`
-- `athena-cti-taa.jsonl`
-- `athena-cti-vsp.jsonl`
+### Mini subsets
+Use the lightweight mini splits (writes to `runs-mini/<model>/<task>.jsonl`):
+```bash
+python -m athena_eval.run --mini --model gpt-4o --task RCM
+```
+```bash
+python -m athena_eval.evaluate --mini --model gpt-4o --task RCM
+```
+- The `--mini` flag swaps each dataset path for its counterpart in `benchmark-mini/`. Evaluator will read from `runs-mini/` if present; otherwise it maps full-run outputs to the mini records by `prompt_hash`.
 
-Ensure the task names used with `--task` match the keys in `athena_eval/config.yaml` (e.g.,`MCQ3k`, `ATE`, `RCM`, `RMS`, `TAA`, `VSP`).
+### Dataset inventory
+- **Full benchmark (`benchmark/`)**: `athena-cti-ckt-3k.jsonl`, `athena-cti-ate.jsonl`, `athena-cti-rcm.jsonl`, `athena-cti-rms.jsonl`, `athena-cti-taa.jsonl`, `athena-cti-vsp.jsonl`.
+- **Mini subsets (`benchmark-mini/`)**: aligned smaller splits for each task (e.g., `athena-cti-ckt-3k.jsonl`), used by `--mini`.
+- Task names used with `--task` must match the keys in `athena_eval/config.yaml` (e.g., `CKT`, `ATE`, `RCM`, `RMS`, `TAA`, `VSP`).
+
+### (Optional) Build datasets
+Data pipelines live in `athena_data` and `athena_scrape`:
+- RCM/VSP: download NVD records then build `athena-cti-rcm.jsonl` and `athena-cti-vsp.jsonl` with `python -m athena_data.cve.create_cve_data --config athena_data/config.yaml`.
+- TAA: extract and anonymize reports (`python -m athena_data.taa.create_taa_data`) then assemble `athena-cti-taa.jsonl` with `python -m athena_data.taa.make_benchmark`.
+- CKT (multiple-choice): collect URLs and build the corpus with `athena_scrape`, draft the plan via `athena_scrape plan-mcq`, then generate questions with `python -m athena_data.mcq.create_mcq_data --config athena_data/config.yaml`. Apply patches or subsets using the MCQ utilities in `athena_data.mcq` to produce `benchmark/athena-cti-ckt-3k.jsonl` (and `benchmark-mini/athena-cti-ckt-3k.jsonl` when subsampled).
+- RMS/ATE: create both from MITRE ATT&CK with `python -m athena_data.mitre_attck.create_mitre_attck_data --config athena_data/config.yaml`.
 
 ## Benchmark Results
 
@@ -78,6 +93,3 @@ Ensure the task names used with `--task` match the keys in `athena_eval/config.y
 | Llama 3.3-70b-Instruct | 81.7 | 44.0 | 59.0 | 11.5 | 69.7 | 22.0 | 48.0 |
 | Llama-Primus-Merged | 79.7 | 32.0 | 51.0 | 6.4 | 71.8 | 18.0 | 43.1 |
 
-
-## Access to Full Benchmark
-For access to the full benchmark dataset, reach out to info@athenasecuritygrp.com.

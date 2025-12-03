@@ -164,7 +164,7 @@ def score_record(task: str, pred: str, ans: str, alias_dict, related_dict):
         else:
             f1 = 2 * precision * recall / (precision + recall)
         return (f1, True)
-    # default MCQ style
+    # default multiple-choice style
     return (1 if pred.strip().lower() == ans.strip().lower() else 0, True)
 
 
@@ -306,10 +306,14 @@ def main(argv: Iterable[str] | None = None) -> None:
     vsp_denominator = float(cfg.get("vsp_mad_denominator", 7.7))
 
     def resolve_task_name(name: str) -> str:
+        alias_map = {"MCQ3K": "CKT", "MCQ": "CKT"}
+        upper = name.upper()
+        if upper in alias_map:
+            return alias_map[upper]
         if name in tasks_cfg:
             return name
         for candidate in tasks_cfg.keys():
-            if candidate.upper() == name.upper():
+            if candidate.upper() == upper:
                 return candidate
         return name
 
@@ -367,11 +371,6 @@ def main(argv: Iterable[str] | None = None) -> None:
                 # Attempt to map from full predictions under the regular runs dir
                 full_runs_dir = Path(cfg.get("predictions_dir", "runs")) / model_name
                 full_preds_path = full_runs_dir / f"{t}.jsonl"
-                # For MCQ3k, also consider fallback to MCQ predictions
-                if task_up == "MCQ3K" and not full_preds_path.exists():
-                    alt = full_runs_dir / "MCQ.jsonl"
-                    if alt.exists():
-                        full_preds_path = alt
                 if not full_preds_path.exists():
                     print(f"[eval] No predictions found for mini {t}. Expected {preds_path} or {full_preds_path}.")
                     continue
@@ -409,35 +408,6 @@ def main(argv: Iterable[str] | None = None) -> None:
                 emit_metrics(t, metrics)
                 continue
 
-            # Non-mini path: preserve MCQ3k fallback by ids if needed
-            if task_up == "MCQ3K" and not preds_path.exists():
-                mcq_preds = model_dir / "MCQ.jsonl"
-                mcq3k_path = Path(cfg["tasks"].get("MCQ3k", ""))
-                if mcq_preds.exists() and mcq3k_path.exists():
-                    print(f"[eval] {preds_path} not found. Using {mcq_preds} filtered to MCQ3k ids.")
-                    subset = load_jsonl(str(mcq3k_path))
-                    id_to_answer = {int(r.get("id")): r.get("answer", "") for r in subset}
-                    full_preds = load_jsonl(str(mcq_preds))
-                    filtered_preds: List[Dict] = []
-                    for rec in full_preds:
-                        rid = rec.get("id")
-                        if rid in id_to_answer:
-                            new_rec = dict(rec)
-                            new_rec["answer"] = id_to_answer[rid]
-                            filtered_preds.append(new_rec)
-                    metrics = evaluate_records(
-                        t, filtered_preds, out_path, alias_dict, related_dict, vsp_denominator
-                    )
-                    emit_metrics(t, metrics)
-                    continue
-                if mcq_preds.exists():
-                    print(f"[eval] {preds_path} not found and MCQ3k dataset missing. Evaluating {mcq_preds} as fallback.")
-                    metrics = evaluate_file(
-                        "MCQ", mcq_preds, out_path, alias_dict, related_dict, vsp_denominator
-                    )
-                    emit_metrics(t, metrics)
-                    continue
-
             metrics = evaluate_file(
                 t, preds_path, out_path, alias_dict, related_dict, vsp_denominator
             )
@@ -448,7 +418,7 @@ def main(argv: Iterable[str] | None = None) -> None:
             task_list = ", ".join(name for name, _ in avg_entries)
             print(f"{model_name} average accuracy across {task_list}: {avg_value:.4f}")
             task_headers = [
-                "MCQ3K(Accuracy)",
+                "CKT (Accuracy)",
                 "ATE (Accuracy)",
                 "RCM (Accuracy)",
                 "RMS (F1-score)",
@@ -457,7 +427,7 @@ def main(argv: Iterable[str] | None = None) -> None:
                 "Combined",
             ]
             values = [
-                avg_display.get("MCQ3K"),
+                avg_display.get("CKT"),
                 avg_display.get("ATE"),
                 avg_display.get("RCM"),
                 avg_display.get("RMS"),

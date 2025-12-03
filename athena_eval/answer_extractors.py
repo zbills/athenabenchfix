@@ -96,8 +96,10 @@ _EXTRACTORS: Dict[str, Callable[[str], str]] = {
     "TAA": extract_taa_answer,
     "RMS": extract_rms_answer,
     "ATE": extract_ate_answer,
+    # Multiple-choice style tasks
+    "CKT": lambda text: _extract_from_lines(text, r"\b([A-E])\b", lambda s: s.upper()),
+    # Legacy aliases
     "MCQ": lambda text: _extract_from_lines(text, r"\b([A-E])\b", lambda s: s.upper()),
-    # Alias MCQ3k to the standard MCQ extractor
     "MCQ3K": lambda text: _extract_from_lines(text, r"\b([A-E])\b", lambda s: s.upper()),
 }
 

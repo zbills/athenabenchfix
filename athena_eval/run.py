@@ -178,7 +178,19 @@ def main(argv: Iterable[str] | None = None) -> None:
         related_dict = load_related_dict("data/processed/taa/related_groups.csv")
 
     model_names = [args.model] if args.model else list(cfg.get("models", {}).keys())
-    task_names = [args.task] if args.task else list(cfg.get("tasks", {}).keys())
+    tasks_cfg = cfg.get("tasks", {})
+
+    def resolve_task_name(name: str) -> str:
+        alias_map = {"MCQ3K": "CKT", "MCQ": "CKT"}
+        upper = name.upper()
+        if upper in alias_map:
+            return alias_map[upper]
+        for candidate in tasks_cfg.keys():
+            if candidate.upper() == upper:
+                return candidate
+        return name
+
+    task_names = [resolve_task_name(args.task)] if args.task else list(tasks_cfg.keys())
 
     for m in model_names:
         model_cfg = cfg["models"][m]
@@ -193,20 +205,6 @@ def main(argv: Iterable[str] | None = None) -> None:
                 else:
                     print(f"[run] Mini dataset missing for {t} at {mini_path}; using full dataset {dataset_path}")
 
-            # Fallback specific to MCQ3k: if dataset missing, fall back to MCQ (mini if requested, else full)
-            if t.upper() == "MCQ3K" and not Path(dataset_path).exists():
-                fallback = None
-                if args.mini:
-                    mcq_mini = Path("benchmark-mini") / Path(cfg["tasks"].get("MCQ", "")).name
-                    if mcq_mini.exists():
-                        fallback = str(mcq_mini)
-                if fallback is None:
-                    mcq_full = cfg["tasks"].get("MCQ")
-                    if mcq_full and Path(mcq_full).exists():
-                        fallback = mcq_full
-                if fallback:
-                    print(f"[run] {t} dataset not found at {dataset_path}. Falling back to: {fallback}")
-                    dataset_path = fallback
             metrics = run_model_on_task(
                 model_cfg,
                 t,
