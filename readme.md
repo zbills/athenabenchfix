@@ -93,3 +93,25 @@ python -m athena_eval.evaluate --mini --model gpt-4o --task RCM
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Athena-Software-Group/athenabench&type=date&legend=top-left)](https://www.star-history.com/#Athena-Software-Group/athenabench&type=date&legend=top-left)
+
+## Citation
+
+If you use this code or datasets, please cite both papers:
+
+```
+@article{alam2025athenabench,
+  title={AthenaBench: A Dynamic Benchmark for Evaluating LLMs in Cyber Threat Intelligence},
+  author={Alam, Md Tanvirul and Bhusal, Dipkamal and Ahmad, Salman and Rastogi, Nidhi and Worth, Peter},
+  journal={arXiv preprint arXiv:2511.01144},
+  year={2025}
+}
+
+@article{alam2024ctibench,
+  title={Ctibench: A benchmark for evaluating llms in cyber threat intelligence},
+  author={Alam, Md Tanvirul and Bhusal, Dipkamal and Nguyen, Le and Rastogi, Nidhi},
+  journal={Advances in Neural Information Processing Systems},
+  volume={37},
+  pages={50805--50825},
+  year={2024}
+}
+```
