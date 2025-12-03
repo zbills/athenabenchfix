@@ -1,6 +1,8 @@
 # AthenaBench
 
-AthenaBench provides cybersecurity benchmarking tasks for evaluating language models on a shared set of CTI tasks. Full benchmark datasets live in `benchmark/`, with matching **mini** subsets under `benchmark-mini/` for quick iteration.
+**Paper:** *AthenaBench: A Dynamic Benchmark for Evaluating LLMs in Cyber Threat Intelligence* (WAITI Workshop 2025) — https://arxiv.org/abs/2511.01144
+
+AthenaBench provides cybersecurity benchmarking tasks for evaluating language models on a shared set of CTI tasks. Full benchmark datasets live in `benchmark/`, with matching **mini** subsets under `benchmark-mini/` for quick iteration. If you want to add your model’s results to the benchmark, open a pull request that includes your `runs/<model>/` (and optional `runs-mini/<model>/`) scored outputs plus an updated results table entry in this README.
 
 ## Setup
 
